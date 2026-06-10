@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pipe Rescue! - Playable Ad</title>
+    <!-- Import Outfit font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #070f1e;
+            --panel-bg: rgba(13, 27, 54, 0.7);
+            --panel-border: rgba(0, 242, 254, 0.2);
+            --text-color: #ffffff;
+            --text-secondary: #8ab4f8;
+            --accent-color: #00f2fe; /* Neon Cyan */
+            --accent-glow: rgba(0, 242, 254, 0.4);
+            --water-color: #00d2ff;
+            --water-glow: rgba(0, 210, 255, 0.6);
+            --gold-color: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.4);
+            --danger-color: #ff3366;
+            --danger-glow: rgba(255, 51, 102, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #0d2347 0%, #030812 100%);
+        }
+
+        /* Bubble effect in background */
+        .bubble-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            background: rgba(0, 242, 254, 0.08);
+            border-radius: 50%;
+            animation: float-up 12s infinite ease-in;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-110vh) translateX(50px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Game container constrained to 9:16 aspect ratio on desktop, full screen on mobile */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            max-height: 888px;
+            aspect-ratio: 9 / 16;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 20px;
+            z-index: 10;
+            background: rgba(5, 11, 22, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        @media (max-aspect-ratio: 9/16) {
+            #game-container {
+                max-width: 100vw;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+        }
+
+        /* Header / Stats Panel */
+        header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #ffffff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--accent-glow);
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-color);
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+
+        .stat-card.danger::after {
+            background: var(--danger-color);
+            box-shadow: 0 0 8px var(--danger-color);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .danger .stat-value {
+            color: var(--danger-color);
+            text-shadow: 0 0 10px var(--danger-glow);
+            animation: pulse-red 1s infinite alternate;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* 4x4 Grid Panel */
+        #grid-panel {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 242, 254, 0.05);
+            position: relative;
+        }
+
+        /* Interactive Grid Tile */
+        .tile {
+            position: relative;
+            background: linear-gradient(135deg, #12213a 0%, #0a1424 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.05);
+        }
+
+        .tile:active {
+            transform: scale(0.95);
+        }
+
+        .tile:hover {
+            border-color: rgba(0, 242, 254, 0.3);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.1), inset 0 2px 4px rgba(255,255,255,0.05);
+        }
+
+        /* Fixed tiles (Start/Goal) styling */
+        .tile.fixed {
+            cursor: default;
+            border-color: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #172a49 0%, #0d1a30 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .tile.fixed:active {
+            transform: none;
+        }
+
+        /* Dynamic SVG Styling inside tiles */
+        .tile svg {
+            width: 90%;
+            height: 90%;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        /* Pipe path styles */
+        .pipe-bg {
+            stroke: #2e3e56;
+            stroke-width: 14;
+            stroke-linecap: round;
+            fill: none;
+            transition: stroke 0.3s ease;
+        }
+
+        .pipe-inner {
+            stroke: #1b2738;
+            stroke-width: 8;
+            stroke-linecap: round;
+            fill: none;
+            transition: stroke 0.3s ease;
+        }
+
+        /* Water flow layer */
+        .pipe-water {
+            stroke: var(--water-color);
+            stroke-width: 6;
+            stroke-linecap: round;
+            fill: none;
+            opacity: 0;
+            stroke-dasharray: 20 100;
+            stroke-dashoffset: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        /* When connected, pipes glow and water flows */
+        .tile.connected .pipe-bg {
+            stroke: #0d4361;
+        }
+
+        .tile.connected .pipe-inner {
+            stroke: #092c40;
+        }
+
+        .tile.connected .pipe-water {
+            opacity: 1;
+            animation: water-flow-anim 2s infinite linear;
+        }
+
+        @keyframes water-flow-anim {
+            to {
+                stroke-dashoffset: -60;
+            }
+        }
+
+        /* Start Tile Water Generator glow */
+        .tile.start-tile {
+            border: 1.5px dashed rgba(0, 242, 254, 0.4);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.15);
+        }
+
+        .tile.start-tile .emitter-core {
+            fill: var(--accent-color);
+            filter: drop-shadow(0 0 4px var(--accent-color));
+            animation: pulse-emitter 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-emitter {
+            0%, 100% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.1) translate(0, 0); }
+        }
+
+        /* Goal Tile Glow */
+        .tile.goal-tile {
+            border: 1.5px dashed rgba(255, 215, 0, 0.3);
+        }
+        .tile.goal-tile.connected {
+            border: 1.5px solid var(--gold-color);
+            box-shadow: 0 0 15px var(--gold-glow);
+            animation: pulse-gold-border 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-gold-border {
+            0% { border-color: rgba(255, 215, 0, 0.4); box-shadow: 0 0 8px rgba(255, 215, 0, 0.2); }
+            100% { border-color: var(--gold-color); box-shadow: 0 0 20px var(--gold-glow); }
+        }
+
+        .tile.goal-tile .target-core {
+            fill: #7f8c8d;
+            transition: fill 0.3s ease;
+        }
+
+        .tile.goal-tile.connected .target-core {
+            fill: var(--gold-color);
+            filter: drop-shadow(0 0 6px var(--gold-color));
+        }
+
+        /* Instructions & UI Footer */
+        footer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            padding: 14px 28px;
+            color: #030812;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px var(--accent-glow);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 80%;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px var(--accent-glow);
+        }
+
+        .hint-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.4;
+            max-width: 85%;
+        }
+
+        /* Full Screen Modals / Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 9, 18, 0.9);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            border-radius: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        @media (max-aspect-ratio: 9/16) {
+            .overlay {
+                border-radius: 0;
+            }
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay-title {
+            font-size: 36px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .overlay-title.win {
+            background: linear-gradient(45deg, #ffe066, var(--gold-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px var(--gold-glow));
+        }
+
+        .overlay-title.fail {
+            background: linear-gradient(45deg, #ff8080, var(--danger-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px var(--danger-glow));
+        }
+
+        .overlay-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+
+        .overlay .btn-cta {
+            background: linear-gradient(135deg, #ffe066 0%, var(--gold-color) 100%);
+            color: #050b14;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            animation: pulse-cta 1.5s infinite;
+            font-weight: 800;
+            font-size: 18px;
+            padding: 16px 36px;
+            width: 90%;
+        }
+
+        @keyframes pulse-cta {
+            0% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); }
+            50% { transform: scale(1.04); box-shadow: 0 12px 30px rgba(255, 215, 0, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); }
+        }
+
+        .overlay .btn-replay {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            font-size: 14px;
+            margin-top: 15px;
+            padding: 10px 24px;
+            width: auto;
+            min-width: 150px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .overlay .btn-replay:active {
+            background: rgba(255,255,255,0.1);
+            transform: scale(0.95);
+        }
+
+        /* Mini-tutorial overlay */
+        .tutorial-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 9, 18, 0.75);
+            z-index: 90;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        @media (max-aspect-ratio: 9/16) {
+            .tutorial-overlay {
+                border-radius: 0;
+            }
+        }
+
+        .hand-icon {
+            font-size: 48px;
+            animation: tap-gesture 1.5s infinite;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            pointer-events: none;
+        }
+
+        @keyframes tap-gesture {
+            0% { transform: scale(1) translateY(0); opacity: 0; }
+            30% { transform: scale(1) translateY(0); opacity: 1; }
+            50% { transform: scale(0.85) translateY(-5px); opacity: 1; }
+            70% { transform: scale(1) translateY(0); opacity: 1; }
+            100% { transform: scale(1) translateY(20px); opacity: 0; }
+        }
+
+        .tutorial-text {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* Custom Audio Settings button */
+        .mute-btn {
+            position: absolute;
+            top: 24px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 120;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .mute-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Background Bubbles -->
+    <div class="bubble-bg" id="bubbles"></div>
+
+    <!-- Mute/Audio Button -->
+    <div class="mute-btn" id="audio-toggle">🔊</div>
+
+    <!-- Main Game Frame -->
+    <div id="game-container">
+        
+        <!-- Header -->
+        <header>
+            <h1 class="title">Pipe Rescue!</h1>
+            <p class="subtitle">Connect the water grid to rescue the diver!</p>
+            
+            <div class="stats-row">
+                <div class="stat-card" id="moves-card">
+                    <span class="stat-label">Moves Left</span>
+                    <span class="stat-value" id="moves-count">15</span>
+                </div>
+                <div class="stat-card" id="status-card">
+                    <span class="stat-label">Flow Rate</span>
+                    <span class="stat-value" id="flow-status" style="color: var(--accent-color);">0%</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tutorial Tap Indicator Overlay (Dismisses on first tap) -->
+        <div class="tutorial-overlay" id="tutorial">
+            <div class="hand-icon">👆</div>
+            <div class="tutorial-text">TAP PIPES TO ROTATE AND CONNECT THE PATH</div>
+        </div>
+
+        <!-- 4x4 Grid -->
+        <div id="grid-panel"></div>
+
+        <!-- Footer / Controls -->
+        <footer>
+            <button class="btn" id="check-btn">Restart Level</button>
+            <p class="hint-text">Rotate the tiles so water flows from the source (left) to the cage (right).</p>
+        </footer>
+
+        <!-- Victory Modal -->
+        <div class="overlay" id="win-overlay">
+            <h2 class="overlay-title win">Rescue Successful!</h2>
+            <p class="overlay-desc">Water is flowing, and the diver is safe! Fantastic puzzle solving skills.</p>
+            <button class="btn btn-cta" id="cta-btn-win">Play More Levels</button>
+            <button class="btn-replay" id="replay-btn-win">Replay Demo</button>
+        </div>
+
+        <!-- Defeat / Try Again Modal -->
+        <div class="overlay" id="fail-overlay">
+            <h2 class="overlay-title fail">Out of Moves!</h2>
+            <p class="overlay-desc">The pressure dropped and the diver ran out of time. Try again to save them!</p>
+            <button class="btn btn-cta" id="cta-btn-fail" style="background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%); color: white; box-shadow: 0 8px 25px rgba(255, 78, 80, 0.4); animation: pulse-cta-red 1.5s infinite;">Try Again</button>
+            <button class="btn-replay" id="replay-btn-fail">Reset Board</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Synthesizer Audio Utility using Web Audio API
+        const audio = {
+            ctx: null,
+            muted: false,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            toggle() {
+                this.muted = !this.muted;
+                document.getElementById('audio-toggle').innerText = this.muted ? '🔇' : '🔊';
+            },
+            playTap() {
+                if (this.muted) return;
+                this.init();
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+                
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            },
+            playWin() {
+                if (this.muted) return;
+                this.init();
+                
+                const now = this.ctx.currentTime;
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]; // C Major arpeggio
+                
+                notes.forEach((freq, index) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + index * 0.08);
+                    
+                    gain.gain.setValueAtTime(0, now + index * 0.08);
+                    gain.gain.linearRampToValueAtTime(0.1, now + index * 0.08 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 0.25);
+                    
+                    osc.start(now + index * 0.08);
+                    osc.stop(now + index * 0.08 + 0.3);
+                });
+            },
+            playFail() {
+                if (this.muted) return;
+                this.init();
+                
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+                
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+        };
+
+        // Create random floating bubbles in the background
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            const bubbleCount = 15;
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                const size = Math.random() * 20 + 8;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 10 + 's';
+                bubble.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                container.appendChild(bubble);
+            }
+        }
+
+        // --- GAME LOGIC CODE ---
+        const GRID_SIZE = 4;
+        let grid = [];
+        let movesLeft = 15;
+        let gameActive = true;
+        let firstTapDone = false;
+
+        // Directions: 0 = Top, 1 = Right, 2 = Bottom, 3 = Left
+        const DX = [0, 1, 0, -1];
+        const DY = [-1, 0, 1, 0];
+
+        // Tile Type definitions
+        const TILE_TYPES = {
+            START: 'start',
+            GOAL: 'goal',
+            STRAIGHT: 'straight',
+            ELBOW: 'elbow'
+        };
+
+        // Class representing each Tile
+        class Tile {
+            constructor(x, y, type, initialRotation, isFixed = false) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.rotation = initialRotation; // 0, 90, 180, 270
+                this.isFixed = isFixed;
+                this.connected = false;
+                this.element = null;
+            }
+
+            // Get port connections relative to grid direction (0=Top, 1=Right, 2=Bottom, 3=Left)
+            getConnections() {
+                const conn = [false, false, false, false];
+                if (this.type === TILE_TYPES.START) {
+                    // Start points Right
+                    conn[1] = true;
+                } else if (this.type === TILE_TYPES.GOAL) {
+                    // Goal points Left
+                    conn[3] = true;
+                } else if (this.type === TILE_TYPES.STRAIGHT) {
+                    // Straight connects opposite sides
+                    if (this.rotation === 0 || this.rotation === 180) {
+                        conn[1] = true; // Right
+                        conn[3] = true; // Left
+                    } else {
+                        conn[0] = true; // Top
+                        conn[2] = true; // Bottom
+                    }
+                } else if (this.type === TILE_TYPES.ELBOW) {
+                    // Elbow connects adjacent sides
+                    // Rotation 0: Left & Top
+                    // Rotation 90: Top & Right
+                    // Rotation 180: Right & Bottom
+                    // Rotation 270: Bottom & Left
+                    if (this.rotation === 0) {
+                        conn[3] = true; conn[0] = true;
+                    } else if (this.rotation === 90) {
+                        conn[0] = true; conn[1] = true;
+                    } else if (this.rotation === 180) {
+                        conn[1] = true; conn[2] = true;
+                    } else if (this.rotation === 270) {
+                        conn[2] = true; conn[3] = true;
+                    }
+                }
+                return conn;
+            }
+
+            rotate() {
+                if (this.isFixed) return;
+                this.rotation = (this.rotation + 90) % 360;
+                audio.playTap();
+                
+                // Visual update of rotation
+                const svg = this.element.querySelector('svg');
+                svg.style.transform = `rotate(${this.rotation}deg)`;
+            }
+        }
+
+        // Draw SVG representation of pipe
+        function generateTileSVG(tile) {
+            let innerContent = '';
+            
+            if (tile.type === TILE_TYPES.START) {
+                // Fixed Water Emitter: A tank on the left and a pipe going right
+                innerContent = `
+                    <circle cx="20" cy="50" r="16" fill="#1b2738" stroke="#2e3e56" stroke-width="3" />
+                    <circle cx="20" cy="50" r="8" class="emitter-core" />
+                    <!-- Connecting pipe to the right -->
+                    <path d="M 36,50 L 100,50" class="pipe-bg" />
+                    <path d="M 36,50 L 100,50" class="pipe-inner" />
+                    <path d="M 36,50 L 100,50" class="pipe-water" />
+                `;
+            } else if (tile.type === TILE_TYPES.GOAL) {
+                // Fixed Goal: A cage on the right, pipe coming from left
+                innerContent = `
+                    <!-- Cage/Diver Container -->
+                    <rect x="62" y="30" width="30" height="40" rx="6" fill="#1b2738" stroke="#2e3e56" stroke-width="3" />
+                    <!-- Cage bars -->
+                    <line x1="68" y1="30" x2="68" y2="70" stroke="#3d5170" stroke-width="2" />
+                    <line x1="77" y1="30" x2="77" y2="70" stroke="#3d5170" stroke-width="2" />
+                    <line x1="86" y1="30" x2="86" y2="70" stroke="#3d5170" stroke-width="2" />
+                    <!-- Diver Helmet silhouette inside -->
+                    <circle cx="77" cy="50" r="7" class="target-core" />
+                    <!-- Pipe from left entering cage -->
+                    <path d="M 0,50 L 62,50" class="pipe-bg" />
+                    <path d="M 0,50 L 62,50" class="pipe-inner" />
+                    <path d="M 0,50 L 62,50" class="pipe-water" />
+                `;
+            } else if (tile.type === TILE_TYPES.STRAIGHT) {
+                // Horizontal Straight (0 degrees default). We rotate the whole SVG for vertical.
+                innerContent = `
+                    <path d="M 0,50 L 100,50" class="pipe-bg" />
+                    <path d="M 0,50 L 100,50" class="pipe-inner" />
+                    <path d="M 0,50 L 100,50" class="pipe-water" />
+                `;
+            } else if (tile.type === TILE_TYPES.ELBOW) {
+                // Left-Top Elbow (0 degrees default: arc from (0, 50) to (50, 0))
+                innerContent = `
+                    <path d="M 0,50 A 50,50 0 0,1 50,0" class="pipe-bg" />
+                    <path d="M 0,50 A 50,50 0 0,1 50,0" class="pipe-inner" />
+                    <path d="M 0,50 A 50,50 0 0,1 50,0" class="pipe-water" />
+                `;
+            }
+
+            return `
+                <svg viewBox="0 0 100 100" style="transform: rotate(${tile.rotation}deg)">
+                    ${innerContent}
+                </svg>
+            `;
+        }
+
+        // Initialize grid board config
+        function initGrid() {
+            grid = [];
+            movesLeft = 15;
+            gameActive = true;
+            firstTapDone = false;
+            
+            document.getElementById('moves-count').innerText = movesLeft;
+            document.getElementById('moves-card').classList.remove('danger');
+            document.getElementById('tutorial').style.opacity = '1';
+            document.getElementById('tutorial').style.pointerEvents = 'none';
+
+            // Layout definition
+            // Row 0
+            grid.push([
+                new Tile(0, 0, TILE_TYPES.ELBOW, 90),
+                new Tile(1, 0, TILE_TYPES.STRAIGHT, 90),
+                new Tile(2, 0, TILE_TYPES.STRAIGHT, 0),
+                new Tile(3, 0, TILE_TYPES.ELBOW, 180)
+            ]);
+            // Row 1
+            grid.push([
+                new Tile(0, 1, TILE_TYPES.START, 0, true), // Fixed
+                new Tile(1, 1, TILE_TYPES.STRAIGHT, 90), // Correct: 0
+                new Tile(2, 1, TILE_TYPES.ELBOW, 0), // Correct: 270
+                new Tile(3, 1, TILE_TYPES.ELBOW, 270)
+            ]);
+            // Row 2
+            grid.push([
+                new Tile(0, 2, TILE_TYPES.ELBOW, 90),
+                new Tile(1, 2, TILE_TYPES.STRAIGHT, 90),
+                new Tile(2, 2, TILE_TYPES.ELBOW, 180), // Correct: 90
+                new Tile(3, 2, TILE_TYPES.GOAL, 0, true) // Fixed
+            ]);
+            // Row 3
+            grid.push([
+                new Tile(0, 3, TILE_TYPES.STRAIGHT, 90),
+                new Tile(1, 3, TILE_TYPES.ELBOW, 270),
+                new Tile(2, 3, TILE_TYPES.STRAIGHT, 0),
+                new Tile(3, 3, TILE_TYPES.ELBOW, 0)
+            ]);
+
+            const gridPanel = document.getElementById('grid-panel');
+            gridPanel.innerHTML = '';
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const tile = grid[y][x];
+                    const tileDiv = document.createElement('div');
+                    tileDiv.classList.add('tile');
+                    if (tile.isFixed) {
+                        tileDiv.classList.add('fixed');
+                    }
+                    if (tile.type === TILE_TYPES.START) {
+                        tileDiv.classList.add('start-tile');
+                    }
+                    if (tile.type === TILE_TYPES.GOAL) {
+                        tileDiv.classList.add('goal-tile');
+                    }
+
+                    tileDiv.innerHTML = generateTileSVG(tile);
+                    tile.element = tileDiv;
+
+                    // Tap listener
+                    tileDiv.addEventListener('click', () => onTileTap(tile));
+                    
+                    gridPanel.appendChild(tileDiv);
+                }
+            }
+
+            checkConnections();
+        }
+
+        // Handle tile tap event
+        function onTileTap(tile) {
+            if (!gameActive || tile.isFixed) return;
+
+            // Clear tutorial on first tap
+            if (!firstTapDone) {
+                firstTapDone = true;
+                const tut = document.getElementById('tutorial');
+                tut.style.opacity = '0';
+                audio.init(); // Initialize audio context on first interactive gesture
+            }
+
+            tile.rotate();
+            movesLeft--;
+            document.getElementById('moves-count').innerText = movesLeft;
+
+            if (movesLeft <= 3) {
+                document.getElementById('moves-card').classList.add('danger');
+            }
+
+            checkConnections();
+
+            // Check game state conditions
+            const goalTile = grid[2][3];
+            if (goalTile.connected) {
+                endGame(true);
+            } else if (movesLeft <= 0) {
+                endGame(false);
+            }
+        }
+
+        // Pathfinding algorithm to calculate water connectivity
+        function checkConnections() {
+            // Reset all connections
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    grid[y][x].connected = false;
+                    grid[y][x].element.classList.remove('connected');
+                }
+            }
+
+            // Find Start tile
+            const startTile = grid[1][0]; // fixed position (0, 1)
+            startTile.connected = true;
+            startTile.element.classList.add('connected');
+
+            // Breadth-First Search (BFS) Queue
+            const queue = [startTile];
+            const visited = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(false));
+            visited[1][0] = true;
+
+            let connectedCount = 1;
+
+            while (queue.length > 0) {
+                const curr = queue.shift();
+                const currConns = curr.getConnections();
+
+                // Check all 4 directions
+                for (let dir = 0; dir < 4; dir++) {
+                    if (currConns[dir]) {
+                        const nx = curr.x + DX[dir];
+                        const ny = curr.y + DY[dir];
+
+                        // Within bounds?
+                        if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+                            const neighbor = grid[ny][nx];
+                            if (!visited[ny][nx]) {
+                                const oppositeDir = (dir + 2) % 4;
+                                const neighConns = neighbor.getConnections();
+
+                                // Bidirectional pipe connection check
+                                if (neighConns[oppositeDir]) {
+                                    neighbor.connected = true;
+                                    neighbor.element.classList.add('connected');
+                                    visited[ny][nx] = true;
+                                    queue.push(neighbor);
+                                    connectedCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Calculate percentage of path connection for UX progress
+            // (We have 4 tiles in the main target path: start, straight, elbow, elbow, goal = 5 tiles)
+            // Show flow rate progress
+            const mainPathTiles = [grid[1][0], grid[1][1], grid[2][1], grid[2][2], grid[2][3]];
+            let activeMainCount = 0;
+            mainPathTiles.forEach(t => {
+                if (t.connected) activeMainCount++;
+            });
+            const flowPercent = Math.round((activeMainCount / mainPathTiles.length) * 100);
+            document.getElementById('flow-status').innerText = flowPercent + '%';
+        }
+
+        // End Game: show overlay modal
+        function endGame(isWin) {
+            gameActive = false;
+            
+            // Wait slightly for visual pipe animations to finish
+            setTimeout(() => {
+                if (isWin) {
+                    audio.playWin();
+                    document.getElementById('win-overlay').classList.add('active');
+                } else {
+                    audio.playFail();
+                    document.getElementById('fail-overlay').classList.add('active');
+                }
+            }, 500);
+        }
+
+        // Event hooks
+        document.getElementById('check-btn').addEventListener('click', () => {
+            initGrid();
+            audio.playTap();
+        });
+
+        document.getElementById('audio-toggle').addEventListener('click', (e) => {
+            audio.toggle();
+            e.stopPropagation();
+        });
+
+        // Retry & CTA handlers
+        document.getElementById('replay-btn-win').addEventListener('click', () => {
+            document.getElementById('win-overlay').classList.remove('active');
+            initGrid();
+        });
+
+        document.getElementById('replay-btn-fail').addEventListener('click', () => {
+            document.getElementById('fail-overlay').classList.remove('active');
+            initGrid();
+        });
+
+        document.getElementById('cta-btn-fail').addEventListener('click', () => {
+            document.getElementById('fail-overlay').classList.remove('active');
+            initGrid();
+        });
+
+        document.getElementById('cta-btn-win').addEventListener('click', () => {
+            // Simulated ad network destination link
+            alert("Call to Action Triggered: Redirecting player to download store!");
+            // window.open('https://play.google.com/store', '_blank');
+        });
+
+        // Init App
+        window.addEventListener('load', () => {
+            createBubbles();
+            initGrid();
+        });
+    </script>
+</body>
+</html>
